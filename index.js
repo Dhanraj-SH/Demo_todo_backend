@@ -1,15 +1,16 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const { authMiddleware } = require("./middleware");
+const {userModel, todoModel} = require("./models");
 
 const app = express();
 app.use(express.json());
 
-let USER_ID = 1;
-let TODO_ID = 1;
+// let USER_ID = 1;
+// let TODO_ID = 1;
 
-let USERS = [];
-let TODOS = [];
+// let USERS = [];
+// let TODOS = [];
 
 app.post("/signup", (req, res)=>{
     const username = req.body.username;
