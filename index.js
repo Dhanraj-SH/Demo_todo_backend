@@ -12,11 +12,16 @@ app.use(express.json());
 // let USERS = [];
 // let TODOS = [];
 
-app.post("/signup", (req, res)=>{
+app.post("/signup", async(req, res)=>{
     const username = req.body.username;
     const password = req.body.password;
 
-    const userExists = USERS.find(user => user.username === username);
+    // const userExists = USERS.find(user => user.username === username);
+
+    const userExists = await userModel.findOne({
+        username: username,
+        password: password
+    })
 
     if(userExists){
         return res.status(403).json({
@@ -24,22 +29,32 @@ app.post("/signup", (req, res)=>{
         });
     }
 
-    USERS.push({
-        id: USER_ID++,
+    // USERS.push({
+    //     id: USER_ID++,
+    //     username: username,
+    //     password: password
+    // });
+
+    const newUser = await userModel.create({
         username: username,
         password: password
     });
 
     res.json({
-        message: USER_ID - 1
+        id: newUser._id
     })
 });
 
-app.post("/signin", (req, res)=>{
+app.post("/signin", async(req, res)=>{
     const username = req.body.username;
     const password = req.body.password;
 
-    const userExists = USERS.find(u => u.username === username && u.password === password);
+    // const userExists = USERS.find(u => u.username === username && u.password === password);
+
+    const userExists = await userModel.findOne({
+        username: username,
+        password: password
+    });
 
     if(!userExists){
         return res.status(403).json({
