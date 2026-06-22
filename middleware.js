@@ -12,7 +12,7 @@ function authMiddleware(req, res, next){
     const decoded = jwt.verify(token, "token");
 
     if(decoded.userId){
-        req.userId = decoded.userId;
+        req.userId = parseInt(decoded.userId);
         next();
     }else{
         return res.status(403).json({

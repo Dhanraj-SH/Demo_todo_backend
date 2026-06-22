@@ -70,12 +70,31 @@ app.post("/todo", authMiddleware, (req,res)=>{
     });
 });
 
-app.delete("/todo", authMiddleware, (req,res)=>{
-    
+app.delete("/todo/:todoId", authMiddleware, (req,res)=>{
+    const userId = req.userId;
+    const todoId = req.params.todoId;
+
+    const ownsTodo = TODOS.find(todo => todo.id === todoId && todo.userId === userId);
+
+    if(!ownsTodo){
+        TODOS = TODOS.filter(t => t.id === todoId);
+        return res.json({
+            message: "Deleted"
+        });
+    }else{
+        return res.status(411).json({
+            message: "Either todo doesnt exist or this is not your todo"
+        });
+    }
+
 });
 
 app.get("/todos", authMiddleware, (req, res)=>{
-    
+    const userId = req.userId;
+    const todosList = TODOS.find(t => t.userId === userId );
+    res.json({
+        todos: todosList
+    });
 });
 
 app.listen(3000);
