@@ -5,11 +5,11 @@ const { authMiddleware } = require("./middleware");
 const app = express();
 app.use(express.json());
 
-const USER_ID = 1;
-const TODO_ID = 1;
+let USER_ID = 1;
+let TODO_ID = 1;
 
-const USERS = [];
-const TODOS = [];
+let USERS = [];
+let TODOS = [];
 
 app.post("/signup", (req, res)=>{
     const username = req.body.username;
@@ -46,7 +46,9 @@ app.post("/signin", (req, res)=>{
         });
     }
 
-    const token = json.sign({userId: userExists.id}, "token");
+    const token = jwt.sign({
+        userId: userExists.id
+    }, "token");
 
     res.json({
         token: token
@@ -62,7 +64,8 @@ app.post("/todo", authMiddleware, (req,res)=>{
     TODOS.push({
         id: TODO_ID++,
         title: title,
-        description: description
+        description: description,
+        userId: userId
     });
 
     res.json({
@@ -72,12 +75,12 @@ app.post("/todo", authMiddleware, (req,res)=>{
 
 app.delete("/todo/:todoId", authMiddleware, (req,res)=>{
     const userId = req.userId;
-    const todoId = req.params.todoId;
+    const todoId = parseInt(req.params.todoId);
 
     const ownsTodo = TODOS.find(todo => todo.id === todoId && todo.userId === userId);
 
-    if(!ownsTodo){
-        TODOS = TODOS.filter(t => t.id === todoId);
+    if(ownsTodo){
+        TODOS = TODOS.filter(t => t.id !== todoId);
         return res.json({
             message: "Deleted"
         });
@@ -91,7 +94,7 @@ app.delete("/todo/:todoId", authMiddleware, (req,res)=>{
 
 app.get("/todos", authMiddleware, (req, res)=>{
     const userId = req.userId;
-    const todosList = TODOS.find(t => t.userId === userId );
+    const todosList = TODOS.filter(t => t.userId === userId );
     res.json({
         todos: todosList
     });
