@@ -4,6 +4,7 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const { authMiddleware } = require("./middleware");
 const {userModel, todoModel} = require("./models");
+const z = require("zod");
 
 const app = express();
 app.use(express.json());
@@ -14,9 +15,28 @@ app.use(express.json());
 // let USERS = [];
 // let TODOS = [];
 
+const { signupSchema, signinSchema } = z.object({
+    username: z.string().min(3),
+    password: z.string().min(6)
+});
+
+const { todoSchema } = z.object({
+    title: z.string().max(20).min(5),
+    description: z.string().max(50).min(10)
+});
+
 app.post("/signup", async(req, res)=>{
-    const username = req.body.username;
-    const password = req.body.password;
+    
+    const {data, success, err} = signupSchema.safeParse(req.body);
+
+    if(!success){
+        return res.status(403).json({
+            message: "Incorrect credentails",
+            error: JSON.parse(err)
+        });
+    }
+
+    const {username, password} = data;
 
     // const userExists = USERS.find(user => user.username === username);
 
@@ -47,8 +67,17 @@ app.post("/signup", async(req, res)=>{
 });
 
 app.post("/signin", async(req, res)=>{
-    const username = req.body.username;
-    const password = req.body.password;
+
+    const {data, success, err} = signinSchema.safeParse(req.body);
+
+    if(!success){
+        return res.status(403).json({
+            message: "Inncorect credentails",
+            error: JSON.parse(err)
+        });
+    }
+
+    const {username, password} = data;
 
     // const userExists = USERS.find(u => u.username === username && u.password === password);
 
@@ -75,8 +104,17 @@ app.post("/signin", async(req, res)=>{
 
 app.post("/todo", authMiddleware, async (req,res)=>{
     const userId = req.userId;
-    const title = req.body.title;
-    const description = req.body.description;
+
+    const {data, success, err} = todoSchema.safeParse(req.body);
+
+    if(!success){
+        return res.status(403).json({
+            message:"Incorrect data",
+            error: JSON.parse(err)
+        });
+    }
+
+    const {title, description} = data;
 
     const newTodo = await todoModel.create({
         title: title,
